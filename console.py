@@ -126,11 +126,18 @@ class HBNBCommand(cmd.Cmd):
         new_instance = HBNBCommand.classes[part[0]]()
         for i in range(1, len(part)):
             s = part[i]
-            match = re.search(r'(\w+)=(".*")', s)
+            match = re.search(r'(.*)=(".*")', s)
             if match:
                 attr_name = match.group(1)
-                attr_value = match.group(2)[1:-1]
+                attr_value = match.group(2)[1:-1].replace('_', ' ')
                 setattr(new_instance, attr_name, attr_value)
+            else:
+                x = s.split("=")
+                if '.' in x[1]:
+                    value_type = float(x[1])
+                else:
+                    value_type = int(x[1])
+                setattr(new_instance, x[0], value_type)
         storage.save()
         print(new_instance.id)
         storage.save()

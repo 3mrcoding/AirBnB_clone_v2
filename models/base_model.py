@@ -55,5 +55,5 @@ class BaseModel:
         return dictionary
 
     def delete(self):
-        """Delete The current instance from the storage"""
+        """Delete The Current instance from the storage"""
         models.storage.delete(self)

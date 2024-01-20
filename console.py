@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 """ Console Module """
 import cmd
-import re
 import sys
 from models.base_model import BaseModel
 from models.__init__ import storage
@@ -116,31 +115,34 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """ Create an object of any class"""
-        part = args.split()
         if not args:
             print("** class name missing **")
             return
-        elif part[0] not in HBNBCommand.classes:
+        list_of_args = args.split()
+        if list_of_args[0] not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        new_instance = HBNBCommand.classes[part[0]]()
-        for i in range(1, len(part)):
-            s = part[i]
-            match = re.search(r'(.*)=(".*")', s)
-            if match:
-                attr_name = match.group(1)
-                attr_value = match.group(2)[1:-1].replace('_', ' ')
-                setattr(new_instance, attr_name, attr_value)
-            else:
-                x = s.split("=")
-                if '.' in x[1]:
-                    value_type = float(x[1])
+        new_instance = HBNBCommand.classes[list_of_args[0]]()
+        for arg in list_of_args[1:]:
+            parameter = arg.split('=')
+            try:
+                if (len(parameter) == 2 and parameter[0] and parameter[1]):
+                    if (parameter[1][0] == '\"' and parameter[1][-1] == '\"'):
+                        value = parameter[1][1:-1].replace('_', ' ')
+                    elif ('.' in parameter[1]):
+                        value = float(parameter[1])
+                    else:
+                        try:
+                            value = int(parameter[1])
+                        except ValueError:
+                            continue
+                    setattr(new_instance, parameter[0], value)
                 else:
-                    value_type = int(x[1])
-                setattr(new_instance, x[0], value_type)
-        storage.save()
+                    continue
+            except IndexError:
+                continue
+        new_instance.save()
         print(new_instance.id)
-        storage.save()
 
     def help_create(self):
         """ Help information for the create method """
@@ -203,7 +205,7 @@ class HBNBCommand(cmd.Cmd):
         key = c_name + "." + c_id
 
         try:
-            del(storage.all()[key])
+            del (storage.all()[key])
             storage.save()
         except KeyError:
             print("** no instance found **")
@@ -222,11 +224,11 @@ class HBNBCommand(cmd.Cmd):
             if args not in HBNBCommand.classes:
                 print("** class doesn't exist **")
                 return
-            for k, v in storage._FileStorage__objects.items():
+            for k, v in storage.all(args).items():
                 if k.split('.')[0] == args:
                     print_list.append(str(v))
         else:
-            for k, v in storage._FileStorage__objects.items():
+            for k, v in storage.all().items():
                 print_list.append(str(v))
 
         print(print_list)
